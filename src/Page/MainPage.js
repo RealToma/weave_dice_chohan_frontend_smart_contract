@@ -64,7 +64,6 @@ const MainPage = ({ balance, setBalance }) => {
   };
 
   const handleRoll = async () => {
-
     if (flagBtnRoll === 1) {
       NotificationManager.error("", "Wait for result of rolling!", 3000);
       return;
@@ -281,7 +280,7 @@ const MainPage = ({ balance, setBalance }) => {
               />
             </>
           )} */}
-          <ReactDice
+          {/* <ReactDice
             numDice={1}
             defaultRoll={3}
             faceColor={"rgb(167,22,22"}
@@ -300,7 +299,7 @@ const MainPage = ({ balance, setBalance }) => {
             rollTime={3}
             margin={"50"}
             disableIndividual={false}
-          />
+          /> */}
         </PartRoll01>
         {flagBtnRoll === 2 ? (
           <PartResult01>
