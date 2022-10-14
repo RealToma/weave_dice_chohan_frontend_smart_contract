@@ -11,7 +11,7 @@ import Web3 from "web3";
 import ReactDice from "react-dice-complete";
 import "react-dice-complete/dist/react-dice-complete.css";
 
-const MainPage = ({ balance,setBalance }) => {
+const MainPage = ({ balance, setBalance }) => {
   const [flagBetType, setFlagBetType] = useState(true);
   const { account, active, library } = useWeb3React();
   const [amount, setAmount] = useState("");
@@ -39,8 +39,9 @@ const MainPage = ({ balance,setBalance }) => {
   useEffect(() => {
     if (active) {
       getLastResult();
+      getBalance();
     }
-  }, [active]);
+  }, [active, balance]);
 
   const isWin = (value1, value2) => {
     if ((value1 + value2) % 2 === 0) {
@@ -63,7 +64,6 @@ const MainPage = ({ balance,setBalance }) => {
   };
 
   const handleRoll = async () => {
-    setFlagBtnRoll(1);
     if (flagBtnRoll === 1) {
       NotificationManager.error("", "Wait for result of rolling!", 3000);
       return;
@@ -72,7 +72,7 @@ const MainPage = ({ balance,setBalance }) => {
       NotificationManager.error(
         "",
         `Please click ${
-          isWin(dice01, dice02)===flagBetType ? "claim" : "play again"
+          isWin(dice01, dice02) === flagBetType ? "claim" : "play again"
         } button before roll!`,
         3000
       );
@@ -102,6 +102,7 @@ const MainPage = ({ balance,setBalance }) => {
       );
       return;
     }
+    setFlagBtnRoll(1);
     const approveBUSD = await contractBusd.approve(
       CONTRACTS.DICE,
       "0x" + (amount * Math.pow(10, 18)).toString(16)
@@ -135,13 +136,57 @@ const MainPage = ({ balance,setBalance }) => {
         <ButtonSwitchBetType>
           <Box display={"flex"} width="100%" height="100%">
             <ButtonLeft01
-              onClick={() => setFlagBetType(true)}
+              onClick={() => {
+                if (flagBtnRoll === 1) {
+                  NotificationManager.error(
+                    "",
+                    "Wait for result of rolling!",
+                    3000
+                  );
+                  return;
+                }
+                if (flagBtnRoll === 2) {
+                  NotificationManager.error(
+                    "",
+                    `Please click ${
+                      isWin(dice01, dice02) === flagBetType
+                        ? "claim"
+                        : "play again"
+                    } button before roll!`,
+                    3000
+                  );
+                  return;
+                }
+                setFlagBetType(true);
+              }}
               flag={flagBetType ? 1 : 0}
             >
               CHO (EVEN)
             </ButtonLeft01>
             <ButtonRight01
-              onClick={() => setFlagBetType(false)}
+              onClick={() => {
+                if (flagBtnRoll === 1) {
+                  NotificationManager.error(
+                    "",
+                    "Wait for result of rolling!",
+                    3000
+                  );
+                  return;
+                }
+                if (flagBtnRoll === 2) {
+                  NotificationManager.error(
+                    "",
+                    `Please click ${
+                      isWin(dice01, dice02) === flagBetType
+                        ? "claim"
+                        : "play again"
+                    } button before roll!`,
+                    3000
+                  );
+                  return;
+                }
+                setFlagBetType(false);
+              }}
               flag={flagBetType ? 1 : 0}
             >
               HAN (ODD)
@@ -165,37 +210,88 @@ const MainPage = ({ balance,setBalance }) => {
           Roll
         </ButtonRoll01>
         <PartRoll01>
-          <ReactDice
-            numDice={1}
-            defaultRoll={flagBtnRoll === 0 ? 1 : dice01}
-            faceColor={"rgb(167,22,22"}
-            dotColor={"white"}
-            dieSize={"100"}
-            rollTime={flagBtnRoll === 0 ? 0 : 3}
-            margin={"50"}
-            disableIndividual={true}
-          />
-          <ReactDice
-            numDice={1}
-            defaultRoll={flagBtnRoll === 0 ? 1 : dice02}
-            faceColor={"rgb(167,22,22"}
-            dotColor={"white"}
-            dieSize={"100"}
-            rollTime={flagBtnRoll === 0 ? 0 : 3}
-            margin={"50"}
-            disableIndividual={true}
-          />
+          {flagBtnRoll === 0 ? (
+            <>
+              <ReactDice
+                numDice={1}
+                defaultRoll={1}
+                faceColor={"rgb(167,22,22"}
+                dotColor={"white"}
+                dieSize={"100"}
+                rollTime={0}
+                margin={"50"}
+                disableIndividual={true}
+              />
+              <ReactDice
+                numDice={1}
+                defaultRoll={1}
+                faceColor={"rgb(167,22,22"}
+                dotColor={"white"}
+                dieSize={"100"}
+                rollTime={0}
+                margin={"50"}
+                disableIndividual={true}
+              />
+            </>
+          ) : flagBtnRoll === 1 ? (
+            <>
+              <ReactDice
+                numDice={1}
+                defaultRoll={1}
+                faceColor={"rgb(167,22,22"}
+                dotColor={"white"}
+                dieSize={"100"}
+                rollTime={0}
+                margin={"50"}
+                disableIndividual={true}
+              />
+              <ReactDice
+                numDice={1}
+                defaultRoll={1}
+                faceColor={"rgb(167,22,22"}
+                dotColor={"white"}
+                dieSize={"100"}
+                rollTime={0}
+                margin={"50"}
+                disableIndividual={true}
+              />
+            </>
+          ) : (
+            <>
+              <ReactDice
+                numDice={1}
+                defaultRoll={dice01}
+                faceColor={"rgb(167,22,22"}
+                dotColor={"white"}
+                dieSize={"100"}
+                rollTime={3}
+                margin={"50"}
+                disableIndividual={true}
+              />
+              <ReactDice
+                numDice={1}
+                defaultRoll={dice02}
+                faceColor={"rgb(167,22,22"}
+                dotColor={"white"}
+                dieSize={"100"}
+                rollTime={3}
+                margin={"50"}
+                disableIndividual={true}
+              />
+            </>
+          )}
         </PartRoll01>
         {flagBtnRoll === 2 ? (
           <PartResult01>
             <TextResult001>
               Dice1 is {dice01}, Dice2 is {dice02}, so you{" "}
-              {isWin(dice01, dice02)===flagBetType ? "won" : "lost"} {amount} BUSD.
+              {isWin(dice01, dice02) === flagBetType ? "won" : "lost"} {amount}{" "}
+              BUSD.
             </TextResult001>
 
             <ButtonResult01 onClick={() => handleClaim()}>
               {" "}
-              {isWin(dice01, dice02) ? "Claim" : "Play again"}
+              {isWin(dice01, dice02) === flagBetType ? "Claim" : "Play again"}
             </ButtonResult01>
           </PartResult01>
         ) : (
