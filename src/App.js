@@ -21,7 +21,7 @@ const App = () => {
       <Web3ReactProvider getLibrary={getLibrary}>
         <StyledComponent>
           <Navbar balance={balance} setBalance={setBalance} />
-          <MainPage balance={balance} />
+          <MainPage balance={balance} setBalance={setBalance} />
           <NotificationContainer />
         </StyledComponent>
       </Web3ReactProvider>

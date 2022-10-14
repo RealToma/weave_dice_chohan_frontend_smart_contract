@@ -7,13 +7,13 @@ import { NotificationManager } from "react-notifications";
 import { BUSD_ABI, DICE_ABI } from "../utils/abi";
 import { ethers } from "ethers";
 import { CONTRACTS } from "../utils/constants";
-
+import Web3 from "web3";
 import ReactDice from "react-dice-complete";
 import "react-dice-complete/dist/react-dice-complete.css";
 
-const MainPage = ({ balance }) => {
+const MainPage = ({ balance,setBalance }) => {
   const [flagBetType, setFlagBetType] = useState(true);
-  const { active, library } = useWeb3React();
+  const { account, active, library } = useWeb3React();
   const [amount, setAmount] = useState("");
   const [lastResult, setLastResult] = useState();
   const [dice01, setDice01] = useState();
@@ -55,6 +55,13 @@ const MainPage = ({ balance }) => {
     setLastResult(tempResult);
   };
 
+  const getBalance = async () => {
+    var web31 = new Web3("https://data-seed-prebsc-1-s3.binance.org:8545/");
+    let contract = new web31.eth.Contract(BUSD_ABI, CONTRACTS.BUSD);
+    let tempBalance = await contract.methods.balanceOf(account).call();
+    setBalance(parseInt(tempBalance) / Math.pow(10, 18));
+  };
+
   const handleRoll = async () => {
     setFlagBtnRoll(1);
     if (flagBtnRoll === 1) {
@@ -65,7 +72,7 @@ const MainPage = ({ balance }) => {
       NotificationManager.error(
         "",
         `Please click ${
-          isWin(dice01, dice02) ? "claim" : "play again"
+          isWin(dice01, dice02)===flagBetType ? "claim" : "play again"
         } button before roll!`,
         3000
       );
@@ -110,6 +117,7 @@ const MainPage = ({ balance }) => {
     setDice01(res.events[1].args[1]);
     setDice02(res.events[1].args[2]);
     setFlagBtnRoll(2);
+    getBalance();
     getLastResult();
   };
 
@@ -118,6 +126,8 @@ const MainPage = ({ balance }) => {
     await claim.wait();
     setFlagBtnRoll(0);
     setFlagBetType(true);
+    getBalance();
+    getLastResult();
   };
   return (
     <StyledComponent>
@@ -180,7 +190,7 @@ const MainPage = ({ balance }) => {
           <PartResult01>
             <TextResult001>
               Dice1 is {dice01}, Dice2 is {dice02}, so you{" "}
-              {isWin(dice01, dice02) ? "won" : "lost"} {amount} BUSD.
+              {isWin(dice01, dice02)===flagBetType ? "won" : "lost"} {amount} BUSD.
             </TextResult001>
 
             <ButtonResult01 onClick={() => handleClaim()}>
@@ -209,11 +219,11 @@ const MainPage = ({ balance }) => {
                     ? `Won ${
                         parseInt(lastResult[index][4].toString()) /
                         Math.pow(10, 18)
-                      } BUSD`
+                      } BUSD!`
                     : `Lost ${
                         parseInt(lastResult[index][4].toString()) /
                         Math.pow(10, 18)
-                      } BUSD`}
+                      } BUSD!`}
                 </TextEachResult01>
                 <TextDetails01>
                   Details: Staked{" "}
