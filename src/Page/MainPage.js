@@ -13,9 +13,12 @@ import "react-dice-complete/dist/react-dice-complete.css";
 
 const MainPage = ({ balance }) => {
   const [flagBetType, setFlagBetType] = useState(true);
-  const { account, active, library } = useWeb3React();
+  const { active, library } = useWeb3React();
   const [amount, setAmount] = useState("");
   const [lastResult, setLastResult] = useState();
+  const [dice01, setDice01] = useState();
+  const [dice02, setDice02] = useState();
+  const [flagBtnRoll, setFlagBtnRoll] = useState(0);
 
   const contractDice = useMemo(
     () =>
@@ -53,6 +56,21 @@ const MainPage = ({ balance }) => {
   };
 
   const handleRoll = async () => {
+    setFlagBtnRoll(1);
+    if (flagBtnRoll === 1) {
+      NotificationManager.error("", "Wait for result of rolling!", 3000);
+      return;
+    }
+    if (flagBtnRoll === 2) {
+      NotificationManager.error(
+        "",
+        `Please click ${
+          isWin(dice01, dice02) ? "claim" : "play again"
+        } button before roll!`,
+        3000
+      );
+      return;
+    }
     if (active === false) {
       NotificationManager.error("", "Please connect wallet!", 3000);
       return;
@@ -88,12 +106,19 @@ const MainPage = ({ balance }) => {
       "0x" + (amount * Math.pow(10, 18)).toString(16),
       flagBetType
     );
-    let res= await resRoll.wait();
-    console.log(res);
-    // const temp = await contractDice.showResult(false);
-    // console.log(temp);
+    let res = await resRoll.wait();
+    setDice01(res.events[1].args[1]);
+    setDice02(res.events[1].args[2]);
+    setFlagBtnRoll(2);
+    getLastResult();
   };
 
+  const handleClaim = async () => {
+    const claim = await contractDice.claim();
+    await claim.wait();
+    setFlagBtnRoll(0);
+    setFlagBetType(true);
+  };
   return (
     <StyledComponent>
       <PartMain01>
@@ -132,25 +157,40 @@ const MainPage = ({ balance }) => {
         <PartRoll01>
           <ReactDice
             numDice={1}
-            defaultRoll={"1"}
+            defaultRoll={flagBtnRoll === 0 ? 1 : dice01}
             faceColor={"rgb(167,22,22"}
             dotColor={"white"}
             dieSize={"100"}
+            rollTime={flagBtnRoll === 0 ? 0 : 3}
             margin={"50"}
             disableIndividual={true}
           />
           <ReactDice
             numDice={1}
-            defaultRoll={"3"}
+            defaultRoll={flagBtnRoll === 0 ? 1 : dice02}
             faceColor={"rgb(167,22,22"}
             dotColor={"white"}
             dieSize={"100"}
-            rollTime={"3"}
+            rollTime={flagBtnRoll === 0 ? 0 : 3}
             margin={"50"}
             disableIndividual={true}
           />
         </PartRoll01>
-        <PartResult01></PartResult01>
+        {flagBtnRoll === 2 ? (
+          <PartResult01>
+            <TextResult001>
+              Dice1 is {dice01}, Dice2 is {dice02}, so you{" "}
+              {isWin(dice01, dice02) ? "won" : "lost"} {amount} BUSD.
+            </TextResult001>
+
+            <ButtonResult01 onClick={() => handleClaim()}>
+              {" "}
+              {isWin(dice01, dice02) ? "Claim" : "Play again"}
+            </ButtonResult01>
+          </PartResult01>
+        ) : (
+          <></>
+        )}
       </PartMain01>
       <PartList01>
         <Title01>Latest 10 Game Results</Title01>
@@ -166,31 +206,32 @@ const MainPage = ({ balance }) => {
                   Result:{" "}
                   {isWin(lastResult[index][1], lastResult[index][2]) ===
                   lastResult[index][3]
-                    ? `Won (${
+                    ? `Won ${
                         parseInt(lastResult[index][4].toString()) /
                         Math.pow(10, 18)
-                      }BUSD)`
-                    : `Lost (${
+                      } BUSD`
+                    : `Lost ${
                         parseInt(lastResult[index][4].toString()) /
                         Math.pow(10, 18)
-                      }BUSD)`}
+                      } BUSD`}
                 </TextEachResult01>
                 <TextDetails01>
-                  Details: You staked{" "}
-                  {parseInt(lastResult[index][4].toString()) / Math.pow(10, 18)}
-                  BUSD and bet {lastResult[index][3] ? "CHO(EVEN)" : "HAN(ODD)"}
-                  , but value of Dice1 was {lastResult[index][1]} and Dice2 was{" "}
-                  {lastResult[index][2]}, so you{" "}
+                  Details: Staked{" "}
+                  {parseInt(lastResult[index][4].toString()) / Math.pow(10, 18)}{" "}
+                  BUSD, bet {lastResult[index][3] ? "CHO(EVEN)" : "HAN(ODD)"}{" "}
+                  and value of Dice1 was {lastResult[index][1]} and Dice2 was{" "}
+                  {lastResult[index][2]}, so{" "}
                   {isWin(lastResult[index][1], lastResult[index][2]) ===
                   lastResult[index][3]
-                    ? `won (${
+                    ? `won ${
                         parseInt(lastResult[index][4].toString()) /
                         Math.pow(10, 18)
-                      }BUSD)`
-                    : `lost (${
+                      } BUSD`
+                    : `lost ${
                         parseInt(lastResult[index][4].toString()) /
                         Math.pow(10, 18)
-                      }BUSD)`}
+                      } BUSD`}
+                  .
                 </TextDetails01>
               </PartRightResult01>
             </EachResult01>
@@ -223,7 +264,7 @@ const PartMain01 = styled(Box)`
 
 const PartList01 = styled(Box)`
   display: flex;
-  width: 1000px;
+  width: 1200px;
   flex-direction: column;
   align-items: center;
   margin-top: 50px;
@@ -375,8 +416,8 @@ const PartResult01 = styled(Box)`
 
 const Title01 = styled(Box)`
   display: flex;
-  font-size: 30px;
-  font-weight: 600;
+  font-size: 40px;
+  font-weight: 700;
   color: #333;
 `;
 
@@ -384,7 +425,7 @@ const EachResult01 = styled(Box)`
   display: flex;
   width: 100%;
   align-items: center;
-  margin-top: 30px;
+  margin-top: 50px;
   color: #333;
 `;
 
@@ -424,6 +465,33 @@ const PartRoll01 = styled(Box)`
   width: 100%;
   margin-top: 50px;
   justify-content: center;
+`;
+
+const TextResult001 = styled(Box)`
+  display: flex;
+  font-size: 20px;
+  font-weight: 500;
+`;
+
+const ButtonResult01 = styled(Box)`
+  display: flex;
+  margin-top: 50px;
+  width: 300px;
+  height: 80px;
+  /* border: 2px solid #333; */
+  border-radius: 8px;
+  background-color: #333;
+  color: white;
+  font-size: 30px;
+  font-weight: 700;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+
+  transition: 0.5s;
+  &:hover {
+    color: #ffd47d;
+  }
 `;
 
 export default MainPage;
