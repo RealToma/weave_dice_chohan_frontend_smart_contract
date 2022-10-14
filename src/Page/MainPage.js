@@ -16,8 +16,8 @@ const MainPage = ({ balance, setBalance }) => {
   const { account, active, library } = useWeb3React();
   const [amount, setAmount] = useState("");
   const [lastResult, setLastResult] = useState();
-  const [dice01, setDice01] = useState();
-  const [dice02, setDice02] = useState();
+  const [dice01, setDice01] = useState(1);
+  const [dice02, setDice02] = useState(1);
   const [flagBtnRoll, setFlagBtnRoll] = useState(0);
 
   const contractDice = useMemo(
@@ -64,6 +64,7 @@ const MainPage = ({ balance, setBalance }) => {
   };
 
   const handleRoll = async () => {
+
     if (flagBtnRoll === 1) {
       NotificationManager.error("", "Wait for result of rolling!", 3000);
       return;
@@ -210,11 +211,11 @@ const MainPage = ({ balance, setBalance }) => {
           Roll
         </ButtonRoll01>
         <PartRoll01>
-          {flagBtnRoll === 0 ? (
+          {/* {flagBtnRoll === 0 ? (
             <>
               <ReactDice
                 numDice={1}
-                defaultRoll={1}
+                defaultRoll={dice01}
                 faceColor={"rgb(167,22,22"}
                 dotColor={"white"}
                 dieSize={"100"}
@@ -224,7 +225,7 @@ const MainPage = ({ balance, setBalance }) => {
               />
               <ReactDice
                 numDice={1}
-                defaultRoll={1}
+                defaultRoll={dice01}
                 faceColor={"rgb(167,22,22"}
                 dotColor={"white"}
                 dieSize={"100"}
@@ -237,7 +238,7 @@ const MainPage = ({ balance, setBalance }) => {
             <>
               <ReactDice
                 numDice={1}
-                defaultRoll={1}
+                defaultRoll={dice01}
                 faceColor={"rgb(167,22,22"}
                 dotColor={"white"}
                 dieSize={"100"}
@@ -247,7 +248,7 @@ const MainPage = ({ balance, setBalance }) => {
               />
               <ReactDice
                 numDice={1}
-                defaultRoll={1}
+                defaultRoll={dice02}
                 faceColor={"rgb(167,22,22"}
                 dotColor={"white"}
                 dieSize={"100"}
@@ -279,7 +280,27 @@ const MainPage = ({ balance, setBalance }) => {
                 disableIndividual={true}
               />
             </>
-          )}
+          )} */}
+          <ReactDice
+            numDice={1}
+            defaultRoll={3}
+            faceColor={"rgb(167,22,22"}
+            dotColor={"white"}
+            dieSize={"100"}
+            rollTime={3}
+            margin={"50"}
+            disableIndividual={false}
+          />
+          <ReactDice
+            numDice={1}
+            defaultRoll={6}
+            faceColor={"rgb(167,22,22"}
+            dotColor={"white"}
+            dieSize={"100"}
+            rollTime={3}
+            margin={"50"}
+            disableIndividual={false}
+          />
         </PartRoll01>
         {flagBtnRoll === 2 ? (
           <PartResult01>
