@@ -13,7 +13,6 @@ function getLibrary(provider) {
   library.pollingInterval = 8000;
   return library;
 }
-
 const App = () => {
   const [balance, setBalance] = useState(0);
   return (
